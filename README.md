@@ -172,6 +172,6 @@ The theme stylesheet and script can be accessed from NuGet through Static Web As
 - [Syncfusion Blazor Image Editor](https://blazor.syncfusion.com/documentation/image-editor/getting-started)
 - [Syncfusion Blazor Dialog](https://blazor.syncfusion.com/documentation/dialog/getting-started)
 - [Blazor Documentation](https://learn.microsoft.com/aspnet/core/blazor/)
-- [.NET 10 Release Notes](https://learn.microsoft.com/dotnet/core/whats-new/dotnet-10)
+- [.NET 10 Release Notes](https://dotnet.microsoft.com/en-us/download)
 
 **Note**: This is a demonstration project. For production use, ensure you have valid licenses for both Syncfusion components and implement appropriate security measures.
