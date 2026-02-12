@@ -1,0 +1,407 @@
+@* 
+    ============================================================================
+    BLAZOR RICH TEXT EDITOR WITH IMAGE EDITOR INTEGRATION
+    ============================================================================
+    
+    File: ImageEditorIntegration.razor
+    Purpose: Main component that integrates Syncfusion Rich Text Editor with 
+             Image Editor for seamless image editing within content editing workflow
+    
+    This component provides:
+    - Rich text editing with formatting capabilities
+    - Integrated image editing through a modal dialog
+    - Real-time image manipulation (crop, rotate, filter, etc.)
+    - Direct image replacement in the editor
+    
+    ============================================================================
+*@
+
+@page "/"
+@using Syncfusion.Blazor.RichTextEditor
+@using Syncfusion.Blazor.ImageEditor
+@using Syncfusion.Blazor.Popups
+@inject IJSRuntime jsRuntime
+
+
+<SfRichTextEditor @ref="editorRef" @bind-Value="rteValue">
+    <RichTextEditorToolbarSettings Items="@Items">
+        <RichTextEditorCustomToolbarItems>
+            <RichTextEditorCustomToolbarItem Name="ImageEditor">
+                <Template>
+                    <button class="e-tbar-btn e-btn e-icons edit" id="imageEditor" @onclick="OnImageEditorClick">
+                        <span class="e-btn-icon e-icons e-rte-image-editor"></span>
+                    </button>
+                </Template>
+            </RichTextEditorCustomToolbarItem>
+        </RichTextEditorCustomToolbarItems>
+    </RichTextEditorToolbarSettings>
+    <RichTextEditorQuickToolbarSettings Image="@ImageQuickTools"></RichTextEditorQuickToolbarSettings>
+</SfRichTextEditor>
+
+<input type="file" id="rte-img-upload" style="display:none" accept="image/*" />
+
+<SfDialog @ref="dialogRef" @bind-Visible="@showDialog"
+          Header="Image Editor" Width="80%" Height="80vh" IsModal="true" ShowCloseIcon="true" ZIndex="10000">
+    <DialogEvents Opened="@OnDialogOpened" Closed="@OnDialogClosed" />
+    <DialogTemplates>
+        <Content>
+            @if (isImageEditorOpen)
+            {
+                <SfImageEditor @ref="imageEditorRef" Height="100%" Width="100%" Toolbar="@ImageEditorToolbar">
+                    <ImageEditorEvents Created="@OnEditorCreated" />
+                </SfImageEditor>
+            }
+        </Content>
+    </DialogTemplates>
+    <DialogButtons>
+        <DialogButton Content="Insert" IsPrimary="true" OnClick="@OnSaveReplace" />
+        <DialogButton Content="Cancel" OnClick="@OnCancel" />
+    </DialogButtons>
+    <DialogAnimationSettings Effect="DialogEffect.Zoom" />
+    <DialogPosition X="center" Y="center" />
+</SfDialog>
+
+@code {
+    // ========== COMPONENT REFERENCES ==========
+    /// <summary>Reference to the Rich Text Editor component for content manipulation</summary>
+    private SfRichTextEditor? editorRef;
+    
+    /// <summary>Reference to the Dialog component for showing/hiding the editor modal</summary>
+    private SfDialog? dialogRef;
+    
+    /// <summary>Reference to the Image Editor component for image manipulation operations</summary>
+    private SfImageEditor? imageEditorRef;
+    
+    /// <summary>.NET object reference for JavaScript interop calls</summary>
+    private object dotNetRef;
+
+    // ========== STATE MANAGEMENT ==========
+    /// <summary>Controls visibility of the Image Editor dialog</summary>
+    private bool showDialog = false;
+    
+    /// <summary>Tracks whether Image Editor is fully initialized and ready</summary>
+    private bool isImageEditorOpen = false;
+    
+    /// <summary>Stores the source URL of the currently selected image for editing</summary>
+    private string currentImageSrc = string.Empty;
+
+    /// <summary>
+    /// HTML content of the Rich Text Editor
+    /// Contains sample text and a default image for demonstration
+    /// </summary>
+    private string rteValue = @"<h2>Rich Text Editor with Image Editing</h2>
+    <p>This Rich Text Editor allows you to edit images directly within your content. Select any image and use the Edit Image button to access image editing tools.</p>
+    <h4>How to Use</h4>
+    <ol>
+    <li>Click on an image in the editor to select it</li>
+    <li>Click the <strong>Edit Image</strong> button in the main toolbar</li>
+    <li>Use the editing tools: crop, zoom, filter, annotate, and fine-tune</li>
+    <li>Click <strong>Insert</strong> to replace the original image with your edited version</li>
+    </ol>
+    <h4>Available Features</h4>
+    <ul>
+    <li>Crop and resize images</li>
+    <li>Apply filters and adjustments</li>
+    <li>Rotate and flip images</li>
+    <li>Add annotations and drawings</li>
+    <li>Support for JPG, PNG, GIF, and WebP formats</li>
+    </ul>
+    <h4>Sample Image</h4>
+    <p>Select the image below to start editing:</p>
+    <p><img id=""rteImageID"" style=""width: 300px; height: 200px; transform: rotate(0deg); border: 2px solid #ddd;"" alt=""Sample Image"" src=""https://cdn.syncfusion.com/ej2/richtexteditor-resources/RTE-Landscape.png"" class=""e-rte-image e-imginline""></p>";
+
+
+    // ========== TOOLBAR CONFIGURATION ==========
+    /// <summary>
+    /// Image Editor toolbar items configuration
+    /// Defines which editing tools are available in the Image Editor
+    /// - Open: Load and open images
+    /// - Zoom: Adjust zoom level
+    /// - Crop: Crop and resize images
+    /// - Annotation: Add drawings, text, and shapes
+    /// - Finetune: Adjust brightness, contrast, saturation
+    /// - Filter: Apply various image filters
+    /// - Reset: Restore to original image state
+    /// </summary>
+    private List<ImageEditorToolbarItemModel> ImageEditorToolbar = new()
+    {
+        new ImageEditorToolbarItemModel() { Name = "Open" },
+        new ImageEditorToolbarItemModel() { Name = "Zoom" },
+        new ImageEditorToolbarItemModel() { Name = "Crop" },
+        new ImageEditorToolbarItemModel() { Name = "Annotation" },
+        new ImageEditorToolbarItemModel() { Name = "Finetune" },
+        new ImageEditorToolbarItemModel() { Name = "Filter" },
+        new ImageEditorToolbarItemModel() { Name = "Reset" }
+    };
+
+
+    /// <summary>
+    /// Rich Text Editor toolbar items configuration
+    /// Defines the main editing tools and actions available in the RTE
+    /// Includes text formatting, linking, image insertion, and custom image editor button
+    /// </summary>
+    private List<ToolbarItemModel> Items = new()
+    {
+        new ToolbarItemModel() { Command = ToolbarCommand.Undo },
+        new ToolbarItemModel() { Command = ToolbarCommand.Redo },
+        new ToolbarItemModel() { Command = ToolbarCommand.Separator },
+        new ToolbarItemModel() { Command = ToolbarCommand.Bold },
+        new ToolbarItemModel() { Command = ToolbarCommand.Italic },
+        new ToolbarItemModel() { Command = ToolbarCommand.Underline },
+        new ToolbarItemModel() { Command = ToolbarCommand.Separator },
+        new ToolbarItemModel() { Command = ToolbarCommand.CreateLink },
+        new ToolbarItemModel() { Command = ToolbarCommand.Image },
+        new ToolbarItemModel() { Command = ToolbarCommand.Separator },
+        new ToolbarItemModel() { Name = "ImageEditor", TooltipText = "Edit Image" },
+        new ToolbarItemModel() { Command = ToolbarCommand.SourceCode },
+        new ToolbarItemModel() { Command = ToolbarCommand.FullScreen }
+    };
+
+
+    /// <summary>
+    /// Image quick toolbar items configuration
+    /// Defines contextual tools displayed when an image is selected in the RTE
+    /// Allows quick access to common image operations:
+    /// - Replace: Swap selected image with another
+    /// - Align: Change image alignment (left, center, right)
+    /// - Caption: Add descriptive caption to image
+    /// - Remove: Delete image from editor
+    /// - InsertLink: Add hyperlink to image
+    /// - Display: Set image display properties
+    /// - AltText: Add alternative text for accessibility
+    /// - Dimension: Adjust width and height
+    /// </summary>
+    private List<ImageToolbarItemModel> ImageQuickTools = new()
+    {
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Replace },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Align },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Caption },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Remove },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Separator },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.InsertLink },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Display },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.AltText },
+        new ImageToolbarItemModel() { Command = ImageToolbarCommand.Dimension }
+    };
+
+
+    // ========== LIFECYCLE METHODS ==========
+    /// <summary>
+    /// Initializes the component and creates a .NET object reference for JavaScript interop
+    /// This reference is used by JavaScript to invoke .NET methods from client-side code
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        dotNetRef = DotNetObjectReference.Create<object>(this as object);
+    }
+
+    /// <summary>
+    /// Executed after the component has been rendered
+    /// On first render, initializes JavaScript interop and sets up event handlers
+    /// </summary>
+    /// <param name="firstRender">Flag indicating if this is the first render</param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                // Initialize JavaScript interop with .NET reference
+                await jsRuntime.InvokeVoidAsync("rteInterop.onInitialized", dotNetRef);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"JS interop initialization failed: {ex.Message}");
+            }
+        }
+    }
+
+
+    // ========== EVENT HANDLERS ==========
+    /// <summary>
+    /// Handles click event on the custom "Edit Image" toolbar button
+    /// Validates that an image is selected, extracts its details, and opens the Image Editor dialog
+    /// </summary>
+    /// <returns>Task representing the asynchronous operation</returns>
+    private async Task OnImageEditorClick()
+    {
+        if (editorRef == null) 
+        {
+            return;
+        }
+        
+        // Save the current editor selection
+        await editorRef.SaveSelectionAsync();
+        
+        // Get the selected HTML content
+        var selectedHtml = await editorRef.GetSelectedHtmlAsync();
+        
+        // Validate that selected content contains an image element
+        if (string.IsNullOrWhiteSpace(selectedHtml) || !selectedHtml.Contains("<img", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+        
+        // Extract image source and other details
+        ExtractImageDetails(selectedHtml);
+        
+        // Show the Image Editor dialog
+        showDialog = true;
+        StateHasChanged();
+    }
+
+
+    /// <summary>
+    /// Extracts the image source URL from HTML markup using regex pattern matching
+    /// Handles various src attribute formats (with or without quotes)
+    /// </summary>
+    /// <param name="html">HTML content containing the image tag</param>
+    private void ExtractImageDetails(string html)
+    {
+        try
+        {
+            // Use regex to extract src attribute value from img tag
+            var srcMatch = System.Text.RegularExpressions.Regex.Match(
+                html,
+                @"src=['""]?([^'""\s>]+)['""]?",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            );
+            
+            // Store the extracted image source URL
+            currentImageSrc = srcMatch.Success ? srcMatch.Groups[1].Value : string.Empty;
+        }
+        catch
+        {
+            // If parsing fails, clear the current image source
+            currentImageSrc = string.Empty;
+        }
+    }
+
+
+    /// <summary>
+    /// Handles the Image Editor dialog opening event
+    /// Marks the Image Editor as ready and triggers component re-render
+    /// </summary>
+    /// <param name="args">Event arguments from the dialog opened event</param>
+    private void OnDialogOpened(Syncfusion.Blazor.Popups.OpenEventArgs args)
+    {
+        if (!isImageEditorOpen)
+        {
+            isImageEditorOpen = true;
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// Handles the Image Editor dialog closing event
+    /// Marks the Image Editor as closed for cleanup
+    /// </summary>
+    /// <param name="args">Event arguments from the dialog closed event</param>
+    private void OnDialogClosed(Syncfusion.Blazor.Popups.CloseEventArgs args)
+    {
+        isImageEditorOpen = false;
+    }
+
+
+    /// <summary>
+    /// Handles the Image Editor component creation event
+    /// Loads the selected image into the editor after a brief delay to ensure initialization
+    /// </summary>
+    /// <returns>Task representing the asynchronous operation</returns>
+    private async Task OnEditorCreated()
+    {
+        if (imageEditorRef != null && !string.IsNullOrEmpty(currentImageSrc))
+        {
+            // Small delay ensures Image Editor is fully initialized
+            await Task.Delay(100);
+            
+            // Load the selected image into the editor
+            await imageEditorRef.OpenAsync(currentImageSrc);
+        }
+    }
+
+    /// <summary>
+    /// JavaScript-invokable method called when a new image file is selected via file input
+    /// Opens the selected image in the Image Editor
+    /// </summary>
+    /// <param name="imageUrl">URL or data URI of the selected image</param>
+    /// <returns>Task representing the asynchronous operation</returns>
+    [JSInvokable]
+    public async Task FileSelected(string imageUrl)
+    {
+        if (imageEditorRef != null)
+        {
+            // Open the selected image in the editor
+            await imageEditorRef.OpenAsync(imageUrl);
+        }
+    }
+
+
+    /// <summary>
+    /// Handles the Insert/Save button click in the Image Editor dialog
+    /// Retrieves the edited image, replaces the original in the RTE, and closes the dialog
+    /// </summary>
+    /// <returns>Task representing the asynchronous operation</returns>
+    private async Task OnSaveReplace()
+    {
+        // Validate that both editors are available
+        if (imageEditorRef == null || editorRef == null)
+        {
+            return;
+        }
+        
+        // Get the edited image as a data URL
+        var imageDataUrl = await imageEditorRef.GetImageDataUrlAsync();
+        if (string.IsNullOrEmpty(imageDataUrl))
+        {
+            return;
+        }
+        
+        // Create new image HTML with the edited image data
+        string newImageHtml =
+            $@"<img id=""rteImageID"" style=""width: 300px; height: 200px; transform: rotate(0deg); border: 2px solid #ddd;"" alt=""Edited Image"" src=""{imageDataUrl}"" class=""e-rte-image e-imginline"">";
+        
+        // Replace existing image or append new one
+        if (!string.IsNullOrEmpty(currentImageSrc))
+        {
+            // Replace the existing image in the RTE content
+            string escapedOldSrc = System.Text.RegularExpressions.Regex.Escape(currentImageSrc);
+            rteValue = System.Text.RegularExpressions.Regex.Replace(
+                rteValue,
+                @"<img[^>]*src=""?" + escapedOldSrc + @"""?[^>]*>",
+                newImageHtml,
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase
+            );
+        }
+        else
+        {
+            // If no existing image, append the new image
+            rteValue += newImageHtml;
+        }
+        
+        // Close the dialog and reset state
+        showDialog = false;
+        currentImageSrc = string.Empty;
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Handles the Cancel button click in the Image Editor dialog
+    /// Closes the dialog without saving changes
+    /// </summary>
+    /// <returns>Task representing the asynchronous operation</returns>
+    private Task OnCancel()
+    {
+        showDialog = false;
+        return Task.CompletedTask;
+    }
+
+}
+
+@* Custom styling for the custom Edit Image button *@
+<style>
+    @* Icon styling for the Edit Image toolbar button *@
+    .e-icons.edit::before {
+        content: '\e730';  @* Icon Unicode character *@
+    }
+</style>
