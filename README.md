@@ -174,8 +174,4 @@ The theme stylesheet and script can be accessed from NuGet through Static Web As
 - [Blazor Documentation](https://learn.microsoft.com/aspnet/core/blazor/)
 - [.NET 10 Release Notes](https://learn.microsoft.com/dotnet/core/whats-new/dotnet-10)
 
-## License
-
-This project is provided as part of Syncfusion examples. See the LICENSE file for more details.
-
 **Note**: This is a demonstration project. For production use, ensure you have valid licenses for both Syncfusion components and implement appropriate security measures.
