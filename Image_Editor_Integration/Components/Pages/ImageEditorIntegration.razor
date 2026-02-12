@@ -22,7 +22,6 @@
 @using Syncfusion.Blazor.Popups
 @inject IJSRuntime jsRuntime
 
-
 <SfRichTextEditor @ref="editorRef" @bind-Value="rteValue">
     <RichTextEditorToolbarSettings Items="@Items">
         <RichTextEditorCustomToolbarItems>
@@ -110,7 +109,6 @@
     <p>Select the image below to start editing:</p>
     <p><img id=""rteImageID"" style=""width: 300px; height: 200px; transform: rotate(0deg); border: 2px solid #ddd;"" alt=""Sample Image"" src=""https://cdn.syncfusion.com/ej2/richtexteditor-resources/RTE-Landscape.png"" class=""e-rte-image e-imginline""></p>";
 
-
     // ========== TOOLBAR CONFIGURATION ==========
     /// <summary>
     /// Image Editor toolbar items configuration
@@ -134,7 +132,6 @@
         new ImageEditorToolbarItemModel() { Name = "Reset" }
     };
 
-
     /// <summary>
     /// Rich Text Editor toolbar items configuration
     /// Defines the main editing tools and actions available in the RTE
@@ -156,7 +153,6 @@
         new ToolbarItemModel() { Command = ToolbarCommand.SourceCode },
         new ToolbarItemModel() { Command = ToolbarCommand.FullScreen }
     };
-
 
     /// <summary>
     /// Image quick toolbar items configuration
@@ -183,7 +179,6 @@
         new ImageToolbarItemModel() { Command = ImageToolbarCommand.AltText },
         new ImageToolbarItemModel() { Command = ImageToolbarCommand.Dimension }
     };
-
 
     // ========== LIFECYCLE METHODS ==========
     /// <summary>
@@ -215,7 +210,6 @@
             }
         }
     }
-
 
     // ========== EVENT HANDLERS ==========
     /// <summary>
@@ -249,7 +243,6 @@
         showDialog = true;
         StateHasChanged();
     }
-
 
     /// <summary>
     /// Extracts the image source URL from HTML markup using regex pattern matching
