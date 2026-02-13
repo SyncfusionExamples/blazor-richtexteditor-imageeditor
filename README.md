@@ -5,16 +5,16 @@
 
 ## Overview
 
-This project demonstrates a professional integration of **Syncfusion Blazor Rich Text Editor** with **Syncfusion Image Editor** for building modern content editing applications. The sample showcases real-time image editing capabilities directly within the WYSIWYG editor, allowing users to crop, rotate, apply filters, and annotate images without leaving the editor.
+This project demonstrates a professional integration of **Syncfusion Blazor Rich Text Editor** with **Syncfusion Image Editor** for building modern content editing applications. The sample showcases real-time image editing capabilities directly within the Rich Text Editor editor, allowing users to crop, rotate, apply filters, and annotate images without leaving the editor.
 
 ### Key Components
 
-- **Syncfusion Blazor Rich Text Editor**: Enterprise-grade WYSIWYG editor with comprehensive formatting capabilities
+- **Syncfusion Blazor Rich Text Editor**: Enterprise-grade Rich Text Editor editor with comprehensive formatting capabilities
 - **Syncfusion Image Editor**: Powerful image manipulation and editing component with professional tools
 
 ## Features
 
-- **Rich Text Editing**: Full-featured WYSIWYG editor with comprehensive formatting tools
+- **Rich Text Editing**: Full-featured Rich Text Editor editor with comprehensive formatting tools
 - **Integrated Image Editing**: Edit images directly within the editor without external tools
 - **Image Manipulation**: Crop, resize, rotate, flip, and apply filters to images
 - **Real-time Preview**: See changes instantly as you edit images
