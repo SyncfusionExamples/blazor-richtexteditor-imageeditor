@@ -84,7 +84,6 @@ window.rteInterop = {
                 }
             }
         }
-        
         // Return empty string on error
         return ''; 
     }
