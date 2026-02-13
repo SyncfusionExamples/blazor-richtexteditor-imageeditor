@@ -37,20 +37,20 @@ Ensure you have the following installed on your development machine:
 
 ### Step 1: Clone the Repository
 
-```powershell
+```bash
 git clone https://github.com/SyncfusionExamples/blazor-richtexteditor-imageeditor.git
 cd blazor-richtexteditor-imageeditor
 ```
 
 ### Step 2: Navigate to Project Directory
 
-```powershell
+```bash
 cd Image_Editor_Integration
 ```
 
 ### Step 3: Restore NuGet Packages
 
-```powershell
+```bash
 dotnet restore
 ```
 
@@ -62,13 +62,13 @@ This will download all required dependencies including:
 
 ### Step 4: Build the Project
 
-```powershell
+```bash
 dotnet build
 ```
 
 ### Step 5: Run the Application
 
-```powershell
+```bash
 dotnet run
 ```
 
