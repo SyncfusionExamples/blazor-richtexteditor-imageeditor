@@ -82,14 +82,14 @@ Open your browser and navigate to the displayed URL to see the application in ac
 
 1. **Launch the application** and navigate to your browser
 2. You'll see the Rich Text Editor with default content and instructions
-3. **To edit an existing image**:
-   - Click on any image in the editor to select it
-   - Click the **Edit Image** button in the toolbar (or use the quick toolbar)
-   - The Image Editor will open in a modal dialog
-4. **To add a new image and edit it**:
+3. **To add a new image and edit it**:
    - Click the **Image** button in the toolbar
    - Select an image file from your computer
    - Click the **Edit Image** button to open the editor
+4. **To edit an existing image**:
+   - Click on any image in the editor to select it
+   - Click the **Edit Image** button in the toolbar (or use the quick toolbar)
+   - The Image Editor will open in a modal dialog
 5. **Edit the image** using available tools
 6. **Click Insert** to save changes and return to the editor
 7. **Click Cancel** to discard changes
